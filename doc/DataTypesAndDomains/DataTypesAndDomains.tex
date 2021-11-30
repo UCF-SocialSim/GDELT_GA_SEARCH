@@ -1,0 +1,139 @@
+ %!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{Data Types and Domains in \gdgas} \label{chap:DataTypesAndDomains}
+
+To search through GDELT data in a structured way requires an understanding of the way that these data `work': what are the characteristics of the different kinds of data, and how can they be manipulated? To examine this, we begin by looking at what kinds of data are contained in the GDELT data set, and what operations are possible on them.
+
+\section{Theory: Fundamentals of Data Types}
+
+Data are not merely values, but are values that exist in structured collections. A value that represents something like a person's height, for example, can have nearly continuous values, but only positive values, and within this the difference between any two values is meaningful using straightforward subtraction; a value that represents the tone of a document may have one of a set of values ranging from some negative to some positive number, and the difference between two values may not strictly be the linear difference. A collection of names forms a different kind of data set, one with no natural (or semantically meaningful) order. It is useful to begin by characterizing the kinds of data that the \gdgas tool will use. These are: 
+
+\begin{itemize}
+  \item \textbf{Nominal Data} - For this data type, the different possible values represent different categories. It is also known as \textbf{categorical data}.
+  \item \textbf{Ordinal Data} - This data type is is like nominal data in that ordinal data are identified as categories.  However, with ordinal data, there is an order or a sequence so that `close' categories are more similar than `distant' ones in some way.
+  \item \textbf{Interval} - In this data type, distance is measurable in regular intervals (so that it is possible to say that one thing is 2x as far away as a second from some known point). This data types lacks a fixed reference point by which the entire data set can be related to an absolute.
+  \item \textbf{Ratio} - This type is like interval data but with a known fixed point.
+\end{itemize}
+
+\subsection{Bounded Data}
+An important consideration when developing the search strategy for a particular set of data is understanding that data set's boundaries. There are two types of boundaries: \textit{terminal} and \textit{wrap-around} data.
+
+\subsubsection{Terminal Data}
+\textit{Terminal data} refers to a field that has a known upper and lower bound. An example is the \textit{Goldstein Scale}, which by definition ranges from -10  to 10. These boundaries represent extreme ends of the scale. In other words, they are two pieces of data that lie at -10 and +10 are as far apart as possible (20 units) on this scale.
+
+\subsubsection{Wrap-Around Data}
+In contrast to terminal data, \textit{wrap-around data} refer to a field that has a single axis but is cyclic. An example is longitude: someone traveling west across the middle of the Pacific will cross longitude values -178 (or 178\degree West), -179, -180 (equivalent to +180, and also 180\degree E), +179, +178, +177). The distance between any two values must be calculated in a way that recognizes this wrap-around, so that the angular distance between -179\degree and +179\degree is 2\degree\footnote{\textbf{\textit{NOTE}}: for geographic distances across the (roughly) spherical earth, a true distance via `great circle' route could be calculated, but this would involve more complicated math than what is presented here.} .
+
+\subsection{Unbounded Data}
+In theory, there could exist a kind of data for which the range is not known and is possibly indefinite, indicating a case of \textit{unbounded data}. However, the \gdgas toolkit acts on a fixed data set, so the ranges of all data in the data set can be known before the exploration of that data begins. Because of this, there is no reason to consider any data \textit{unbounded} because it is always possible to determine what the boundaries are. For a fuller discussion, see Chapter \ref{chapter:SpatialTuning}.
+
+\section{Functional Requirement of a Data Type in \gdgas}
+To be employed as a data type in the \gdgas toolkit, a data type must be able to perform the operations needed to move through the `search space' of which a variable of that type forms an axis. In general, this means defining a range of values, and then expanding, reducing, or shifting that range along the axis.
+
+In practice, this set of operations is carried out differently for different data types:
+\begin{itemize} 
+\item For \textit{nominal data}, a range is defined as some subset of the valid values. For example, if the range includes five possible country codes, then the current value may be three of these codes. Reducing this range means removing a code; expanding it means adding a code. However, expansion and reduction are done randomly. For expansion, one of the two remaining codes is chosen randomly and added to the set, while for reduction, one of the three current codes is selected randomly and removed. Because the data are purely categorical, there is no presumed order that would make one code a candidate for removal or addition over any other available option. The notion of an `axis' is somewhat misleading in this case, because the values are unordered.
+\item For \textit{ordinal data}, however, the data are considered to be in an order; hence, expanding or reducing a range means moving along the ordered axis. Suppose, for example,  that our categories were letters of the alphabet, A, B, C, D, ... H. The current range might be a subset of this: D, E, F, G. Expansion could be done by adding `C' or `H', in effect moving upward or downward along the list. Reduction could be done by trimming the list, removing `D' or `G'. The range created by either of these operations would remain a set of contiguous elements. Discontinuous sets (e.g. ``B, C, F", omitting D and E) are \textit{not} possible (but can be accommodated by a nested query structure). 
+\item For an ordinal data set that is \textit{wrap-around}, expansion could go around the wrapping boundary. If the A, B, C, D, ... H set is wrap-around and the current values are `F, G, H', expansion could be performed by adding `E' or `A', as `E' is contiguous with F and `A' is contiguous, across the wrapping boundary, with H.
+\end{itemize}
+
+% Some of the rest of this is still TBD; we need to figure out good ways (multiple) to specify expansion and reduction of other ranges. We additionally need to specify the magnitude of these. In the above examples we assumed we were adding or removing one element, but what if there were hundreds possible? Doing one by one is slow....
+
+\section{Data Types and Data Fundamental Domains in \gdgas Code}
+% A description of the implementation in our toolkit of these data types: Which Java objects do what.
+The \gdgas toolkit defines several classes that represent data types; these are found in the \textit{gdelt.query.domains.components} package, and include:
+
+\begin{itemize}
+\item \textit{Double} For continuous values
+\item \textit{Integer} For integer values
+\item \textit{IntegerWrapped} For integer values that exist on a `wrapped' scale
+\item \textit{OrderedSet} For sets that contain a natural order
+\item \textit{UnorderedSet} For sets that contain no natural order
+\end{itemize}
+
+\section{Aggregated Data Domains}
+With some domains, it is natural to consider two or more to form a single data type.
+The most immediate example of this is \textit{latitude} and \textit{longitude}, which are commonly considered together. Searching on only latitude or only longitude, or independently on these two, is less intuitive and arguably less effective than considering them to form a single region on the Earth's surface.
+
+Latitude and longitude form an especially nice example because of their differences. Latitude is bounded, ranging from -90 degrees (or 90\degree S) to +90 degrees (90\degree N). Longitude, conversely, is wrap-around, ranging from -180 degrees (or 180\degree W)  to +180 degrees (180\degree E), such that 180\degree W = 180 \degree E. These two can be combined to form a region in multiple ways. For example, a single lat/long pair could be used to define a point on the earth's surface, and a radius used as a distance from this point, such that any GDELT record with lat/long lying within the circle defined by this point + radius would be a match. Doing this, however, would raise a number of small issues. One is that the math to compute the distance from the center point is nontrivial, and while not extremely difficult would nevertheless introduce a performance concern. A second is that the notion of `expanding' or `reducing' the data set is intuitive with respect the radius (which can be increased or decreased, bounded by a minimum of zero and a maximum of the half the circumference of the earth\footnote{The radius could be replaced with an angular offset, but this only changes and does not resolve the issues.}), but with respect to the center point is more challenging: the center point could be moved, but this would leave out some of the values that were original in the circle (e.g., if the center moves east, some points on the western boundary are omitted).
+
+Instead we implement latitude and longitude as a linked pair, where latitude is a continuous bounded domain and longitude is a wrap-around domain. Together these two values define a box on the earth's surface; the box can be expanded E-W and/or N-S by simply invoking the expand and reduce methods on the underlying domains independently.
+
+\section{GDELT Fields and their Domains in \gdgas}
+The GDELT data types are mapped into the \gdgas tool in specific ways. Most of these are commonsensical: Average Tone, for example, is a Double value. But note some specific exceptions. Event Root Code, for example, is mapped as an ordered set; although it is represented by numerical values, there is a more natural ordering to them (ranging from cooperation to conflict), and this is not the same ordering as the integers' values.
+
+Table \ref{table:GDELTEventFieldsAndTypes} shows the GDELT fields and the methods used to implement them in the \gdgas toolkit. Note that some fields (e.g. `filename') are not used and are omitted here.
+
+\begin{table}[H]
+\begin{center}
+\caption{Fields in GDELT Events Table and their \gdgas Types} 
+\label{table:GDELTEventFieldsAndTypes}
+\begin{adjustbox}{max width=1.1\textwidth,center}
+\begin{tabular}{| c | c | c | }
+\hline
+\textbf{GDELT Field} & \textbf{Data Type} & \textbf{\gdgas Designation}\\
+\hline
+day & & \\
+\hline
+MonthYear & & \\
+\hline
+FractionDate & & \\
+\hline
+Year & & \\
+\hline
+dateadded & & \\
+\hline
+EventCode & & \\
+\hline 
+QuadClass & & \\
+\hline
+EventRootCode & Integer & Ordered Set \\
+\hline
+EventBaseCode & & \\
+\hline
+IsRootEvent & & \\
+\hline
+GoldsteinScale & Continuous Bounded & Double \\
+\hline
+Geo\_FullName & & \\
+\hline
+Geo\_Type & & \\
+\hline
+Geo\_CountryCode & & \\
+\hline
+Geo\_ADM1Code & & \\
+\hline
+Geo\_ADM2Code & & \\
+\hline
+Geo\_Lat & Continuous Numerical & Combined with Longitude \\
+\hline
+Geo\_Long & Continuous Numerical & Combined with Latitude\\
+\hline
+Geo\_FeatureID & & \\
+\hline
+ActorXName & & \\
+\hline
+ActorXCode & & \\
+\hline
+ActorXCountryCode & Categorical & Unordered Set\\
+\hline
+ActorXKnownGroupCode & & \\
+\hline
+ActorXEthnicCode & & \\
+\hline
+NumArticles & & \\
+\hline
+NumMentions & & \\
+\hline
+sourceurl & & \\
+\hline
+NumSources & & \\
+\hline
+AvgTone & Continuous Bounded & Double \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table}  
+
+

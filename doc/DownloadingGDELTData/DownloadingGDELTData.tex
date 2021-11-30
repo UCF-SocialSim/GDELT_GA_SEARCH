@@ -1,0 +1,33 @@
+%!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{Downloading GDELT Data} \label{chap:DownloadingGDELTData}
+
+\section{Using the Events and Mentions Scrapers}
+
+\gdgas includes a pair of tools to allow you to acquire GDELT data. The \textit{GDELT\_Events\_Scraper} tool downloads GDELT Event data; the \textit{GDELT\_Mentions\_Scraper} downloads GDELT Mention data. Downloading Mention data is a second step that relies on an existing corpus of event data; when downloading mentions, only mentions associated with events in the events corpus are stored.
+
+Running these tools is best done in an IDE; they are not currently configurable from the command line, and the code must be changed to download specific subsets of data. The result of these tools is a file (user-specifiable, but customarily either GDELT\_Events\_Data.csv or GDELT\_Mentions\_Data.csv) that contains the GDELT data. The data are in the standard GDELT format; they are not transformed. For historical reasons, the Mentions file has a header line, while the Events file does not.
+
+GDELT data is stored online in a repository of ZIP files that are identified by a time stamp code. The tools here are given a start and end time range and move from beginning to end, downloading the files, unzipping them, and assembling the results into a file that can be used as \gdgas input. The ZIP files can optionally be retained or deleted; retaining them allows the routine to be run again without hitting GDELT's servers, but the files are quite large to store.
+
+\section{Setting download parameters}
+Each of the tools allows you to specify the date/time range of files to be downloaded, and a few other options. In total the options are:
+
+\begin{itemize}
+\item startTime The earliest file to download (inclusive)
+\item endTime The latest time to download (not inclusive; the routine stops before downloading this file.)
+\item dataPath A path to directory in which the data output will be stored.
+\item ZIP\_PATH\_ROOT the path to the directory in which the ZIP files will be stored when downloaded (and optionally retained)
+\item LoopLimit A debug fail-safe to stop from downloading too many files; this is in place because the files are very large and you may want to stop downloading at some specific point (but this could also be limited by the time ranges)
+\item keepZip True if the ZIP files should be kept; false if they should be automatically deleted once expanded
+\item fileName The name of the file that will be created
+\item appendToFile True if the output file should be appended to; false if it should be deleted before writing begins.
+\item sleepInterval An interval in milliseconds that the routine should wait between downloading files. This is to ensure that the server does not believe it is being attacked. The default is 500. Reducing it can lower the total time the routine needs, but the response of GDELT's servers to faster downloads is not known.
+\end{itemize}
+
+Additionally, the Events scraper has  parameter (`PROB') that can be set to a number lower than one; this will probabilistically exclude lines from the original files. This is a crude form of random sampling. If set to zero and the keepZip parameter is set to true, the routine effectively downloads GDELT ZIP files and does no other action.
+
+The Mentions scraper has an additional required parameter that gives the path and name of the Events table to used to create the GDELT corpus; only mentions related to events in the corpus are loaded.
+
+\section{Filtering Events}
+The code can be modified to download only include specific events. Line 114 in the Events scraper includes an example. Filtering would have to be done in a customized way and is not covered in detail here.

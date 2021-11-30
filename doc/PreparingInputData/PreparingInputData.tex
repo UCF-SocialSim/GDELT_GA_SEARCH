@@ -1,0 +1,324 @@
+%!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{Preparing Input Data} \label{chap:PreparingInputData}
+%Note sure about location: Blueberry graph needed. Cameo codes are 4-digit codes. The first two are root codes (1-20) and the second two are sub-divisions of root codes (i.e., subtype). Goldstein is the range of how 'nice' an event is based on the cameocode. Cameo code is represented on the x-axis and Goldstein is represented on the y-axis. Negative values (-) signify 'bad' and positive values signify 'good'. Re: "Spatial Tuning" (ch?) reconfigure Goldstein values and cameo codes because the numbers go from neutral to good and then bad.
+\section{Input Data Overview}
+
+The types of input data needed are:
+\begin{itemize}
+\item GDELT data 
+\begin{itemize}\item Events Table \item Mentions Table\end{itemize}
+\item Time series data for comparisons
+\item Any other parameter configurations (TBD!)
+\end{itemize}
+
+\par These will have a preferred file location ('data' directory in the GDELT\_GA\_Search project), although users can probably override this.
+
+\section{GDELT Data}
+Description
+\subsection{Events Table}
+\par \textbf{GlobalEventId} is the link between this table and the Mentions Table (see \hyperlink{section.4.2}{Mentions Table} section). \\GDELT can infer multiple events from a single real-world event, so a single event in the real-world can show as multiple lines in this table. For example, if Norway and Namibia had a simple bilateral meeting (Norway$\leftrightarrow$Namibia), there could be two entries for the same event: one entry for Norway$\rightarrow$Namibia and another for Namibia$\rightarrow$Norway. Similarly, if Norway, the Netherlands, and Namibia had a conference, there could be multiple entries for Norway$\rightarrow$Netherlands, Netherlands$\rightarrow$Namibia, and Norway$\rightarrow$Namibia. \emph{Having multiple entries skews event counts}, but it can also be useful.
+
+\par \textbf{FileName} is not relevant (FOR WHAT?). It only relates to how data are distributed %(DISTRIBUTED WHAT/WHERE? "relates to data distribution" HIDES MISSING INFORMATION BETTER).
+
+\par \textbf{DateAdded} is when GDELT found the record %(WHAT RECORD? THE MEDIA COVERAGE?). DateAdded may("is"? WHY WOULD IT NOT BE?) be the best indication of when media about an event is released.
+
+\par \textbf{FractionDate} is a representation of the \emph{date} as a fraction of the year. It does \emph{not} state the time. It can be used for sorts %(PREFERRED JARGON TO 'SORTING'?). 
+\\It is easier to parse DateAdded than FractionDate, so using a ‘Date’ object is better. %(FROM DateAdded or below? BETTER HOW—FOR SORTS?). 
+
+\textbf{Day}, \textbf{MonthYear}, and \textbf{Year} are similar. %(IN WHAT WAYS? WHY DOES THIS MATTER? ARE THESE DATE OBJECTS?)
+
+
+\subsubsection{CAMEO Codes}
+There are four \emph{Conflict and Mediation Event Observations Event and Actor Codes}, or CAMEO Codes, in GDELT:
+\begin{itemize} \item QuadClass \item EventRootCode \item EventBaseCode \item EventCode \end{itemize}
+
+\par  For information outside of the scope of this introduction, visit the CAMEO dictionary, \href{http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf}{CAMEO Conflict and Mediation Event Observations Event and Actor Codebook}.
+
+\par \textbf{QuadClass} is the broadest %(IN TERMS OF RESOLUTION?) 
+and has four values: 1=Verbal Cooperation, 2=Material Cooperation, 3=Verbal Conflict, 4=Material Conflict.
+
+\par \textbf{EventRootCode} is a 1- or 2- digit marker ranging from 1 to 20. (These are explained below.)
+
+\par \textbf{EventBaseCodes} are finer resolution. %(WHAT DOES RESOLUTION REFER TO?)
+
+\par \textbf{EventCodes} are the finest resolution.
+
+\subsubsection{EventRootCode}
+There are twenty \textit{root code} markers and their categories: 
+\begin{enumerate} \item MAKE PUBLIC STATEMENT \item APPEAL \item EXPRESS INTENT TO COOPERATE \item CONSULT  \item ENGAGE IN DIPLOMATIC COOPERATION \item ENGAGE IN MATERIAL COOPERATION \item  PROVIDE AID \item  YIELD \item  INVESTIGATE \item DEMAND \item DISAPPROVE \item REJECT \item THREATEN \item PROTEST \item EXHIBIT MILITARY POSTURE \item REDUCE RELATIONS  \item COERCE \item ASSAULT \item FIGHT \item ENGAGE IN UNCONVENTIONAL MASS VIOLENCE \end{enumerate} 
+
+\par Root codes are a total of four digits. %I don't understand the difference between CAMEO codes and root codes, although I recognize that the clip from the GDELT codebook at the top of page 3 here: https://docs.google.com/document/d/1nPShaMtQuO797W3OXe03_icMVnR_wfZlJ4ILYlpa65I/edit
+
+The first two digits are the event root codes which mark the broader category and the second two digits mark the subcategory. 
+For example, code “1424” is “Conduct hunger strike for change in institutions, regime”—a subtype of ‘Protest’. Similarly, code 0251 is "Appeal for easing administrative sanction," which is a subtype of 'Apeal'. %but also something about three digit codes?
+
+\par \href{https://docs.google.com/spreadsheets/d/1z2bK0SD826bL5eq-5ZhLCF3rnJoVnW_fJS1wBEAx03Y/edit?usp=sharing}{An account of the codes and the number of events in each code can be found here.}
+
+\par For example, Base Code ‘20’ has only a total of 141 events out of the ~600K in the data set.
+
+The implication of this is that some changes to queries are different from others. For instance, if the query allows “018”, there are only ~500 events.
+If it expands to include ‘019’, this will only add 31 new events.
+If it expands to include ‘017’, this will add ~1600 events, causing the number of events to quadruple. 
+Search cost is high, and exploring whether there is a change when 31 events are added to a search is unlikely to yield anything interesting, so the priority should be on the highest event counts. %what are these three digit codes exactly? Event Base Codes?
+
+\subsubsection{WhatToCallThisSection?} 
+There are seven fields that refer to the original text article or articles from which the event was derived:
+\begin{itemize} \item sourceurl \item sourceurl\_h \item AvgTone \item IsRootEvent \item NumArticles \item NumMentions \item NumSources \end{itemize}
+
+\par The \textbf{sourceurl} and \textbf{sourceurl\_h} are both URLs.
+The \_h version is the \emph{hashed} version that will match any reference in our larger tweet data set.
+\\The article identified in the sourceurl field should be in the Mentions Table (see \hyperlink{section.4.2}{Mentions Table} section.)
+This article is the first article in which an event was identified.
+ 
+ \par \textbf{AvgTone} is the average \emph{tone} of articles, but all of these will (in theory) be in the \hyperlink{section.4.2}{Mentions Table}. %What exactly is tone here? Is tone about a text's attitude towards an event? Is it measured in relation to some stab at objective gravity/levity of an event?
+ 
+ \par \textbf{IsRootEvent} is true if the event was detected in the first paragraph of the document in source\_url. (Not to be confused with ‘Root Code’.) It is not updated if other sources in the \hyperlink{section.4.2}{Mentions Table} refer to it in column 1. %What is meant by 'true'? Is IsRootEvent not true if other sources refer to it in column 1? 
+ 
+\par \textbf{AvgTone}, \textbf{NumArticles}, \textbf{NumMentions}, and \textbf{NumSources} are all fields that need to be used with caution. 
+ They only refer to articles captured “During the 15-minute Update” in which it was first seen. 
+ This is not ‘Within 15 minutes of it being seen’; it is cut off strictly at 15-minute intervals. %what is 'it' exactly?
+ For example, an event that first appears at 12:01 AM could be seen more times before 12:15, whereas one first seen at 12:14 would only have one minute to acquire more mentions. 
+ This does not relate to the time that the article appears; it relates only to the time that GDELT found it.
+
+\textbf{\textit{Basically, all of these fields are now better addressed by considering the \hyperlink{section.4.2}{Mentions Table} directly, with IsRootEvent being lost entirely.}} %does this mean they should be ignored? Have they been replaced? How can we warn our readers that the above list isn't as important as the following list?
+
+\subsubsection{Actor Codes}%I'm guessing at the section name here
+\begin{itemize} \item Actor1Code / Actor2Code
+\item Actor1CountryCode / Actor2CountryCode
+\item Actor1Geo\_ADM1Code / Actor2Geo\_ADM1Code
+\item  Actor1Geo\_ADM2Code / Actor2Geo\_ADM2Code
+\item Actor1Geo\_CountryCode / Actor2Geo\_CountryCode
+\item Actor1Geo\_FeatureID / Actor2Geo\_FeatureID
+\item Actor1Geo\_FullName / Actor2Geo\_FullName
+\item Actor1Geo\_Lat / Actor2Geo\_Lat
+\item Actor1Geo\_Long / Actor2Geo\_Long
+\item Actor1Geo\_Type / Actor2Geo\_Type \end{itemize}
+%explanations? actors are involved parties is an event? how is who is Actor1 and Actor2 decided? 
+
+There is a unique code for each actor from the \href{http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf}{CAMEO dictionary}.
+
+Here is a breakdown of most common Actor1 Codes and the number of events:
+%should we have a clear agent key or note the agents here?
+\begin{enumerate}  
+\item 132852	\quad VEN
+\item 68825	\quad GOV
+\item 47030	\quad null
+\item 45833	\quad USA
+\item 24318	\quad RUS
+\item 23465	\quad VENGOV
+\item 18520 	\quad COL
+\item 17325	\quad MIL
+\item 12800	\quad OPP
+\item 10602	\quad LEG
+\item 8748		\quad BRA
+\item 7893		\quad CVL
+\item 7764		\quad MED
+\item 7366		\quad BUS
+\item 7229		\quad USAGOV
+\item 7150		\quad ESP
+\item 6921		\quad PER
+\item 6390		\quad CHN
+\item 5986		\quad COP
+\item 4852		\quad VENMIL
+\item 4636		\quad CUB
+\item 4536		\quad CAN
+\item 4531		\quad MEX
+\item 4299		\quad IGOUNO
+\item 4242		\quad VENOPP 
+\end{enumerate}
+
+Here is a breakdown of the most common Actor2 Codes and the number of events in which they appear:
+
+\begin{enumerate}
+\item 142495	\quad VEN
+\item 128720	\quad null
+\item 56931	\quad GOV
+\item 36518	\quad USA
+\item 23306	\quad VENGOV
+\item 17706	\quad MIL
+\item 17634	\quad COL
+\item 13768	\quad RUS
+\item 12428	\quad OPP
+\item 8370		\quad LEG
+\item 7896		\quad BRA
+\item 7321		\quad CVL
+\item 6264		\quad BUS
+\item 6161		\quad MED
+\item 5181		\quad PER
+\item 5085		\quad USAGOV
+\item 5067		\quad ESP
+\item 4587		\quad COP
+\item 4292		\quad VENMIL
+\item 4093		\quad CHN
+\item 4082		\quad VENOPP
+\item 3723		\quad IGOUNO
+\item 3519		\quad CUB
+\item 3470		\quad EUR
+\item 3460		\quad URY
+\item 2900		\quad MEX
+\item 2757		\quad CAN
+\item 2642		\quad VENCVL
+\item 2354		\quad TUR
+\item 2316		\quad JUD
+\item 2054		\quad VENLEG
+\item 1978		\quad USAMED
+\item 1967		\quad COLGOV
+\end{enumerate}
+
+\subsubsection{Mutation} %guessing at the section name
+In thinking about how use actors in a \textbf{mutation}, %defined how?
+ imagine that a query includes a set of these already:
+
+\textbf{Actor 1 {\scriptsize E} {\large \{ VEN, GOV, USA, VENGOV \}}}  
+
+To \emph{mutate} this, it is possible to:
+\begin{itemize}
+\item Remove one of the actor codes
+\item Add another actor code
+\item Replace an actor code by removing one and adding another 
+\end{itemize}
+
+\par Use the counts of events in the overall data set to guide which actor codes would be removed or added. 
+\\ In order to do this, keep data for the weighted selection. %"to do this" meaning "mutation" or something else?
+\par Note that adding more actor codes should be less likely as the set gets large.
+Consider whether the set is a set of records should be included or excluded. %What determines the decision? i.e. what goals?
+Also consider using the other codes %Like what? The sourceurl, AvgTone, IsRootEvent, etc. from the above section?
+ because they can capture the same information but more broadly and sometimes more reliably.
+ 
+ \subsubsection{CrypticCodes}%change section title
+ Other codes are more cryptic. Here is \textbf{Actor1Geo\_FeatureID} with counts of occurrences:
+\begin{enumerate}
+\item 157753 \quad VE
+\item 113901 \quad -938457
+\item  47292 \quad null
+\item  32221 \quad 531871
+\item  22163 \quad US
+\item  15568 \quad -2960561
+\item  15447 \quad CO
+\item  11759 \quad RS
+\item  9555 \quad BR
+\item  9334 \quad -960192 \end{enumerate}
+%Should we say to ignore geo location? refer to p.8, GDELT manual part  "Actor1Geo_FeatureID" to try to make sense of this: https://docs.google.com/document/d/1nPShaMtQuO797W3OXe03_icMVnR_wfZlJ4ILYlpa65I/edit
+
+A few entries do have some of the other data described in the GDELT book.%this? http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf
+
+For example, a few thousand have \textbf{Known Group ID}:
+
+ \begin{enumerate} 
+ \item 629981\quad null
+\item   5364 \quad UNO
+\item   2234 \quad EEC
+\item    691 \quad IRC
+\item    508 \quad OPC
+\item    265 \quad NAT
+\item    142 \quad ICC
+\item    116 \quad HRW
+\item    112 \quad OAS
+\item     93 \quad WEF
+\item     88 \quad IMF
+\item     76 \quad TAL
+\item     70 \quad AMN
+\item     53 \quad ICG
+\item     27 \quad IOM
+\item     20 \quad SAD
+\item     13 \quad ITP
+\item     10 \quad ALQ
+\item       8 \quad SCE
+\item      8 \quad ARL
+\item      7 \quad ASN
+\item      6 \quad IPU
+\item      5 \quad XFM
+\item      5 \quad MSF
+\item      4 \quad WTO
+\item      3 \quad WAS
+\item      2 \quad GOS
+\item      2 \quad GOE
+\item      2 \quad COE \end{enumerate}
+
+A few even have \textbf{Religion1Code}. %meaning what?
+However, it’s a bit unclear if this adds more information above the actor codes (so, the same actor should always have the same code).
+
+
+
+
+
+
+
+
+\subsection{Mentions Table}
+Using the Mentions Table %explain
+\par The mentions table has the following fields:
+\begin{itemize} \item \textbf{GlobalEventId} - Key that links this to the events table
+\item \textbf{EventTimeDate} - Date/Time of the original event
+\item \textbf{MentionIdentifier} - URL
+\item \textbf{MentionSourceName} - Domain
+\item \textbf{MentionTimeDate}  
+\item \textbf{MentionDocTranslationInfo} - Which articles were translated from Spanish %other langs too?
+\item \textbf{MentionDocLen}
+\item \textbf{MentionDocTone}
+\item \textbf{Extras}
+\item \textbf{MentionType}: Always ‘1’ in the data set
+\item \textbf{SentenceId}
+\item \textbf{Actor1CharOffset}
+\item \textbf{Actor2CharOffset}
+\item \textbf{ActionCharOffset}
+\item \textbf{Confidence}
+\item \textbf{InRawText} \end{itemize}
+
+\textbf{Extras} is always null. \textbf{Translation information} is only present for articles that were translated.
+\par A generalized structure is needed for a field in queries. This is what is currently used:
+%insert picture from Doc p.10 or figure out font formatting
+\par While this works, it requires hard-coding every element and does not allow for explorations.
+\par Take these two as examples. %these two what? are they in the picture?
+They are different in a couple of important ways: 
+\begin{enumerate} 
+\item One is a continuous value (here a double), and the other is an integer.
+\item One ranges from -10.0 to +10.0; the other can be zero or above, without any limit \footnote{There is no limit in theory, but in practice there will be an unknown maximum value in the data set.}.
+\end{enumerate}
+\par Think of these as domains to explore. Next, think about how to explore them. Here are some beginning operations to consider:
+\begin{enumerate} \item \textbf{Initialize} the field in an intelligent way. This can be done by including all elements (e.g., starting with -10.0 $\leftarrow$ x $\leftarrow$ 10.0 for Goldstein, which will include all entries).
+\item \textbf{Reduce} the scope of the field. Here is how this is done:
+\begin{enumerate}\item Raising the minimum value (e.g., -7.0 $\Leftarrow$ x $\Leftarrow$ 10.0)
+\item Reducing the maximum value (e.g. -10.0 $\Leftarrow$ x $\Leftarrow$ 7.0)
+\item Both \end{enumerate}\end{enumerate}
+
+It is also possible to split the range so that there are two: %two what?
+(-10.0 $\Leftarrow$ x < -7.0 \& -7.0 $\Leftarrow$ x $\Leftarrow$ 10.0)
+
+Notice that there is an issue with inclusive/exclusive ranges. In the first, the -7.0 is exclusive, but in the second the -10.0 is inclusive. In general, use the lower bound as inclusive but the upper bound as exclusive. Note that this means that if x < 10.0 is used, all values of 10.0 exactly are omitted.
+
+
+All of these can be thought of as operations:
+
+\begin{enumerate} \item \textbf{InitFullRange} - Initialize but include all records
+\item \textbf{InitRandomRange} - Initialize but include a random range
+\item \textbf{Reduce} - Reduce the range
+\item \textbf{Expand} - Expand the range
+\item \textbf{Split} - Cut into two distinct pieces that together capture all of the original domain
+\item \textbf{Invert} - Make so that all excluded become included \end{enumerate}
+
+This is a good set to start with. One of the advantages is that it can be used with either numerical or unordered sets.
+
+
+
+\section{Time Series Data for Comparisons}\label{TimeSeriesDataStructure}
+The data required for time series comparisons have a simple structure:
+
+\begin{lstlisting}
+platform,frame,ConvertedDate,counts
+twitter,capitol,2020-10-01,1034
+twitter,capitol,2020-10-02,1081
+twitter,capitol,2020-10-03,1096
+twitter,capitol,2020-10-04,1116
+twitter,capitol,2020-10-05,1198
+twitter,capitol,2020-10-06,1234
+twitter,capitol,2020-10-07,1271
+twitter,capitol,2020-10-08,1368
+etc.
+\end{lstlisting}
+
+The first column is the source of the data (typically called the `platform'); the second is a topic (commonly called the `frame'). The third is a date in the format shown, and the fourth is the value associated with that date.
+
+Generally this file will cycle through multiple frames and then multiple platforms, if any, repeating the same dates.
+

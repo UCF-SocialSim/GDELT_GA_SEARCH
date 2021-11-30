@@ -1,0 +1,242 @@
+%!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{The Structure of GDELT Data} \label{chap:GDELTData}
+
+\par The GDELT data set consists of two tables: an \textbf{events table} that is a list of real-world events that GDELT has extracted from news sources and a \textbf{mentions table} that lists the specific times that this event has been discussed in world news sources. For example, ``Country X condemns the human rights abuses in Country Y" might appear as an entry in the events table, and several news articles mentioning it would appear in the mentions table (e.g., articles appearing on or in the BBC, CNN, NY Times services). The two tables are in a one-to-many relationship, meaning that every entry in the Events table can have multiple entries in the Mentions table. Because the events are drawn from mentions---that is, GDELT discovered every event in at least one data source---every event in the events table should have at least one entry in the mentions table.
+
+\section{The GDELT Events Table}
+
+\par This section reviews the fields in the GDELT events table. To simplify the discussion, some fields are considered as families:  all \emph{1Actor1} variables and \emph{1Actor2} variables are specified identically, so both Actor 1 and Actor 2 are characterized the same way. For example, \textit{Actor1CountryCode} and \textit{Actor2CountryCode} are the same kind of variable and are represented in the same way. In this discussion here, \emph{ActorX} (e.g., \textit{ActorXCountryCode}) is used to refer to both Actor1 and Actor2.
+
+\par Fields in the events can be grouped into several categories:
+
+\begin{itemize}
+  \item \textbf{Metadata} are fields that are used primarily for recordkeeping (e.g., GDELT's distribution filenames) and do not generally contain information about the real-world event being recorded or the discourse about it.
+  \item \textbf{Date Information} contains fields that characterize the real-world action that was performed in the event (e.g., level of conflict or specific kind of interaction that was undertaken).
+  \item \textbf{Characterization} contains fields that describe the character, or attributes, of the action performed in the event.
+  \item \textbf{Location Information} contains information about the geographic position of the event; note that it can include the location of the event and (as separate values) the locations of the actors when they performed the event.
+    \item \textbf{Actor Information} contains information about the actors (at least one, possibly two) involved in event.
+  \item \textbf{Discourse} contains fields that indicate elements of the way the event was discussed (e.g., the average `tone' of the articles that mention this event).
+\end{itemize}
+
+\par These categories, and the fields within them, are shown in Table \ref{table:GDELTEventFields}.
+
+\begin{table}[H]
+\begin{center}
+\caption{Fields in GDELT Events Table} 
+\label{table:GDELTEventFields}
+\begin{adjustbox}{max width=1.1\textwidth,center}
+\begin{tabular}{| c | c | c | c | c | c | c |}
+\hline
+\textbf{Metadata} & \textbf{Date Information} & \textbf{Characterization} & \textbf{Location} &  & \textbf{Actor Information} & \textbf{Discourse} \\
+\hline
+globaleventid & day & QuadClass & ActionGeo\_FullName  & ActorXGeo\_FullName  & ActorXName & IsRootEvent \\
+\hline
+filename & MonthYear & EventRootCode & ActionGeo\_Type  & ActorXGeo\_Type & ActorXCode & NumMentions \\
+\hline
+sourceurl & Year & EventBaseCode &  ActionGeo\_CountryCode  & ActorXCountryCode & ActorXCountryCode & NumSources \\
+\hline
+dateadded & FractionDate & EventCode & ActionGeo\_ADM1Code & ActorXGeo\_ADM1Code & ActorXKnownGroupCode & NumArticles \\
+\hline
+ &  & GoldsteinScale &  ActionGeo\_ADM2Code  &  ActorXGeo\_ADM2Code  & ActorXEthnicCode &  AvgTone \\
+\hline
+ &  &  & ActionGeo\_Lat  & ActorXGeo\_Lat  & ActorXReligionCode &  \\
+\hline
+ &  &  & ActionGeo\_Long & ActorXGeo\_Long & ActorXTypeNCode &  \\
+\hline
+ &  &  & ActionGeo\_FeatureID & ActorXGeo\_FeatureID &  &  \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table}  
+
+\section{Metadata}
+\par Metadata includes information that is used to track the source of the information and to indicate other aspects that have to do with the piece of information as a GDELT record (as opposed to information about the real-world event). Much of this information is not directly related to the real-world event itself.
+    \begin{itemize} 
+        \item \textbf{globaleventid} - This is a unique identifier that is used to specify this event (and link it to the related records in the mentions table). These IDs are assigned sequentially (and hence could be used as range limiters or for comparison) but should be treated as arbitrary.
+        \item \textbf{filename} - This refers to the file in which GDELT stores this record (generally named after the 15-minute interval in which the record was collected) %so not always?
+        \item \textbf{sourceurl} - This is the URL of the \textbf{first} source in which GDELT identified this real-world event. It is not necessarily the earliest source in which it appeared in the real world, nor is it the most important source. While it can be representative, it i also somewhat arbitrary.
+        \item \textbf{dateadded} - This is the date that the record was added to GDELT, including a time stamp with 15-minute resolution. Note that this is \textbf{not} the date of the event, which could be much earlier (even years).
+   \end{itemize}
+   
+   
+\section{Date Information}
+
+Date information is related to the date that the real-world event took place. (This is in contrast to \textit{dateadded}, which is when GDELT discovered the event in the news sources.)
+        \begin{itemize} 
+            \item \textbf{day} - This gives the date the event took place in YYYYMMDD format. 
+            \item \textbf{MonthYear} - This excludes the day and presents the event date in truncated YYYYDD format.
+            \item \textbf{Year} - This gives only the year in YYYY format.
+            \item \textbf{FractionDate} - This gives the percentage of the year completed as YYYY.FFFF, essentially collapsing the month and day fields.
+       \end{itemize}
+        
+    The date information includes redundancy: If \textit{day} information is available, then all other date information codes can be derived.
+
+
+\section{Characterization}
+
+GDELT provides a set of fields that describe the character of the action performed. This is done by assigning the event to a category based on the \hyperref{http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf}{CAMEO code book}, %is that the right codebook?
+ which lists an extensive taxonomy of events (e.g. `Reach Accord' or `Issue Statement'). 
+ Fundamentally, this is \textit{one} assignment: GDELT selects a single CAMEO code that it believes represents the kind of event performed. 
+ In the dataset, however, GDELT provides several versions of the CAMEO code assigned. %"assigned CAMEO code" maybe?
+ The different versions of the CAMEO code reflect different levels of specificity, ranging from general to more specific and following the structure described in the CAMEO code book. These versions are:
+
+\begin{itemize} 
+\item \textbf{QuadClass} - This field specifies the primary classification of an event type to allow for analysis at the highest level of aggregation. Events are organized into four classifications, each with a numeric code: 1 is Verbal Cooperation, 2 is Material Cooperation, 3 is Verbal Conflict, and 4 is Material Conflict.
+\item \textbf{EventRootCode} - Sometimes referred to as \textit{RootCode}, this is the first part of the CAMEO code (the first two digits, possibly including a leading zero), representing a general category of the action such as `Express Intent to Cooperate'.
+\item \textbf{EventBaseCode} - Sometimes referred to as the \textit{BaseCode}, this is both the first and second parts of the CAMEO code, representing a more specific action, such as `Express Intent to Engage in Material Cooperation'.
+\item \textbf{EventCode} - This is the full CAMEO code assigned, fully categorizing the action, e.g. `Express Intent to Cooperate Militarily'.
+\end{itemize}
+
+\par In the example above, the \textit{QuadClass} would be 1 (verbal cooperation), the \textit{RootCode} would be `03,' the \textit{BaseCode} would be `031,' and the full code, \textit{EventCode}, would be `0312.' 
+Note that some events are only coded to the \textit{BaseCode} level of specificity. `031' is a valid code and represents `Express Intent to Engage in Material Cooperation' without specifying the form of that cooperation.  Similarly, `030' is a valid code that is effectively just the \textit{RootCode}, the trailing zero indicating that the action could not be classified with more specificity.% (`Express Intent to Cooperate') —if that's an example, what does it show?
+ 
+\par GDELT provides an additional field:
+
+\begin{itemize}
+\item \textbf{GoldsteinScale} - This is an event's likely impact on the stability of a region on a scale from -10 (highly destabilizing) to +10 (stabilizing). 
+\end{itemize}
+
+\par The \textit{GoldsteinScale} score is assigned based on the event \textit{type} and not for real-world characteristics of the event itself. For example, if they were both assigned the same CAMEO code, a riot with 10 participants would be assigned the same Goldstein Scale value as a riot with 10,000 participants. 
+
+% Internal note: I checked this in our data; there is a 1:1 correspondence between event codes and Goldstein Scale codes.
+
+\par \textbf{\textit{NOTE}}: Although there are five distinct values here (\textit{QuadClass}, \textit{RootCode}, \textit{BaseCode}, \textit{EventCode}, and \textit{GoldsteinScale}), in effect there is only one: the full CAMEO event code contains all the other codes. In other words, all characterization codes can be derived from the full CAMEO event code. Although they may be useful for aggregation, analysis, and data exploration (as we will see), the character codes are functionally redundant.
+              
+\section{Location}
+There are three location types: \emph{Event}, \emph{Actor1}, and \emph{Actor2}.
+Action geography and actor geography have the same structure, so their data types are the same. The geographic location is about where the actors were \emph{when they did the event}. It is not the an intrinsic attribute of the actor. In other words, it is not about where an actor is from or with where an actor is affiliated. 
+This section describes the various event and actor location fields. The concordance among the actor and location fields is in table \ref{table:GDELTLocationFields}
+
+\begin{table}[H]
+\begin{center}
+\caption{Location Fields} 
+\label{table:GDELTLocationFields}
+\begin{adjustbox}{max width=1.1\textwidth,center}
+\begin{tabular}{| c | c | c | c |}
+\hline
+\textbf{Variable} & \textbf{Action} & \textbf{Actor1} & \textbf{Actor2} \\
+\hline
+Geo\_Fullname & ActionGeo\_Fullname & Actor1Geo\_Fullname & Actor2Geo\_Fullname \\
+\hline
+Geo\_Type & ActionGeo\_Type & Actor1Geo\_Type & Actor2Geo\_Type \\
+\hline
+Geo\_FeatureID & ActionGeo\_FeatureID & Actor1Geo\_FeatureID & Actor2Geo\_FeatureID \\
+\hline
+Geo\_CountryCode & ActionGeo\_CountryCode & Actor1Geo\_CountryCode & Actor2Geo\_CountryCode \\
+\hline
+Geo\_ADM1Code & ActionGeo\_ADM1Code & Actor1Geo\_ADM1Code & Actor2Geo\_ADM1Code \\
+\hline
+Geo\_ADM2Code & ActionGeo\_ADM2Code & Actor1Geo\_ADM2Code & Actor2Geo\_ADM2Code \\
+\hline
+Geo\_Lat & ActionGeo\_Lat & Actor1Geo\_Lat & Actor2Geo\_Lat \\
+\hline
+Geo\_Long & ActionGeo\_Long & Actor1Geo\_Long & Actor2Geo\_Long \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table}
+		
+\subsection{Location Field Descriptions}
+	\begin{itemize} 
+
+\item \textbf{FullName} - This is the actor's name as it is used in the source text. As such, it can be a name for a country, state, city, or landmark. Names of countries are given as just `Country Name'. For both US and World states, the names are given as `State, Country Name.' For cities or landmarks, the names are given as `City/Landmark, State, Country'.
+
+\item \textbf{Type} - This is the geographic scale. It can be broad or specific. Locations are organized into five classifications, each with a numeric code: 1 is Country, 2 is US State, 3 is US City, 4 is World City, and 5 is World State. \\ \textbf{\textit{NOTE}}: The GDELT handbook says that if the  Type is 1, 2, or 5, then \textit{FeatureID} will be blank. This is not the case, although it is possible to ignore \textit{FeatureID} for those types.
+
+\item \textbf{CountryCode} - This is a 2-letter code for the country.
+
+\item \textbf{ADM1Code} - This is a 2-letter code for a state, province, or prefecture. The scale that is more specific than country but less specific than city or landmark. 
+
+\item \textbf{ADM2Code} - This is a code that is more specific than \textit{ADM1Code}: it is for for a county, city, or landmark (that is inside the state, province, or prefecture). 
+If the location is international, then %what exactly? is this right?
+If the location is within the US, then the \textit{ADM2Code} is the 2-letter state code with 2-digit county code. %is this right?
+
+\item \textbf{FeatureID} - If the \textit{Type} code is 3 (US City) or 4 (World City), then \textit{FeatureID} is a unique numeric value. 
+If the \textit{Type} code is 1 (Country), 2 (US State), and 5 (WorldState), then the \textit{FeatureID} is a text field. 
+According to the GDELT handbook, the ID field should be unique. 
+However, in the case of codes 1, 2, and 5, the \textit{FeatureID} is not necessarily unique: some countries and states can only be differentiated by \textit{Type}. For example, the \textit{FeatureID} 'PA' could mean `Paraguay' or `Pennsylvania.' If PA occurs with Type 1, it is the country Paraguay. If PA occurs with Type 2, it is the US state. Because of this, for a given GDELT data set, consider inspecting the data to see if \textit{FeatureIDs} include these inconsistencies.
+
+\item \textbf{Lat} - Short for latitude, Lat is a Y-coordinate between -90 and +90 degrees. All locations are given a latitude to intersect with the longitude. Lat/long are coordinates used to specify precise locations via a grid system. 
+
+\item \textbf{Long} - Short for longitude, Long is an X-coordinate between -180 and +180 degrees. All locations are given a longitude to intersect with the latitude. Lat/long are coordinates used to specify precise locations via a grid system.
+\end{itemize} 
+
+According to the \href{http://data.gdeltproject.org/documentation/GDELT-Event_Codebook-V2.0.pdf}{GDELT documentation}, %is that the referenced documentation?
+the \textit{lat/long} are assigned based on the location. This implies that \textit{CountryCode}, \textit{ADM1Code}, and \textit{ADM2Code} should fully determine \textit{FeatureID}, and vice versa, and these should in turn fully determine \textit{Type} and \textit{Lat/Long} parts of event codes. In practice, some coding inconsistencies exist so that these relationships do not fully hold.
+
+In contrast to these code fields, name fields (e.g. \textit{FullName}) reflect the name of the location as it was found in the text and is not necessarily consistent (e.g., ``Texas", ``State of Texas", ``TX").
+
+\section{Actor Information} 
+An actor's characteristics and attributes are given in 3-letter codes and are combined to form the /textit{ActorX} code. %is that term correct? 
+It is possible to query individual fields separately with these codes.
+
+\textbf{\textit{NOTE}}: The titles for attributes are taken from \href{https://github.com/openeventdata/tabari_dictionaries/blob/master/MNC.090831.actors.txt}{TABARI ACTORS dictionary} %(link appropriate?) 
+rather than from the source documents. ta
+For example, a dictionary label for \textit{Group} is `Insurgents', but the source document may refer to the group as ``radicalized terrorists".
+
+\begin{itemize} 
+  \item \textbf{ActorXName} - This is the name of the actor, a proper name.
+  \item  \textbf{ActorXCode} - This is the complete raw code comprised of codes for \textit{Country}, \textit{KnownGroup}, \textit{Ethnic}, \textit{Religion}, and \textit{Type}.  \\For example, AFGINSTALMED is a valid \textit{ActorXCode}, and it contains: \textit{CountryCode} AFG (Afghanistan); \textit{Type1Code} INS (Insurgent); \textit{KnownGroupCode} TAL (Taliban); and \textit{Type2Code} MED (Media). The value in the \textit{ActorXName} field is TALIBAN.
+  \item \textbf{ActorXCountryCode} - This is 3-letter code of the actor's country affiliation. It is an attribute of the actor; it is not where an actor participated in an action. For example, if the source text says, ``US President meets Supreme Leader in North Korea," then the \textit{CountryCode} for \textit{Actor1} (US President) is `USA', while the \textit{CountryCode} for \textit{Actor2} (Supreme Leader) is `PRK'.
+ \\Additionally, the \textit{CountryCode} can be blank. For example, if the source text refers to an ``unidentified gunman", then the country affiliation of the gunman is unknown.
+  \item \textbf{ActorXKnownGroupCode} - This is applicable if the actor is associated with a known IGO, NGO, or rebel organisation. It can be blank.
+  \item \textbf{ActorXEthnicCode} - This is the ethnic affiliation of the actor given that ethnicity is specified in the source document and has a code.
+   \\ \textbf{\textit{NOTE}}: Ethnic groups can also be coded as \textit{Type} (e.g., ARAB), so some codes may not comprehensively capture ethnic affiliations. To better capture affiliations, consider using the Global Knowledge Graph's ethic, religious, and social group taxonomies. 
+  \item \textbf{ActorXReligionNCode} - This is the religious affiliation of the actor given that the religion is both specified in the source document and has a code. Some religious groups (e.g., JEW) can be given as geographic and type codes. 
+\\N is the number of codes associated with an actor. There can be multiple religious codes per actor. For example, Catholicism invokes Christianity for Code1 and Catholicism for Code2. 
+  \item \textbf{ActorXTypeNCode} - This is a 3-letter code for the \textit{type} or `role' of an actor. For example, types can be specific: Police Forces, Government, Military, Political Opposition, Rebels, etc. Types can also be broad: Education, Elites, Media, Refugees, or organizational classes like Non-Governmental Movement. Types can also be for the operational strategy of a group: Moderate, Radical, etc. It can be blank.
+  \\ N is the number of codes associated with an actor. There can be multiple type codes associated with an actor. For example, an actor can have both 'Radical' and 'Media' types.
+\end {itemize}
+
+\section{Discourse}
+These variables characterize the way that the news sources discuss the real-world event.
+   \begin{itemize} 
+     \item \textbf{IsRootEvent} - This indicates whether the event was mentioned in the first paragraph of the document given by \textit{sourceurl}.
+     \item \textbf{NumMentions} - This is the number of mentions recorded for a real-world event.
+     \item \textbf{NumSources} - This is the number of distinct news sources that mention a real-world event.
+     \item \textbf{NumArticles} - This is the number of distinct articles that mention a real-world event.
+     \item \textbf{AvgTone} - This is the average tone (calculated via NLP) of the articles that mention this real-world event.
+ \end{itemize}
+
+\par For clarity, \textit{NumArticles} refers to the number of different news articles that mention the event; \textit{NumSources} refers to the number of different news sources in which those articles appear; and \textit{NumMentions} refers to the number of different times that the event is mentioned. 
+\par For example, if the NY Times carried an article in which an event was mentioned twice and a second article that mentioned it once, while BBC carried one article that mentioned it twice, the number of sources would be two (NY Times and BBC), the number of articles would be three (two in the NYT and one in BBC), and the number of mentions would be five (2 + 1 + 2). 
+
+\par \textbf{\textit{NOTE}}: There is an important limitation on these fields: They are recorded only during the first 15-minute interval during which GDELT initially recognizes the real-world event. Other articles that are discovered after this are not incorporated into these totals. In general, it may be preferable to use the records in the Mentions table rather than relying on these values.
+
+\section{The GDELT Mentions Table}
+
+\par The Mentions table lists each mention of a particular event. A single article can mention the same event more than once, resulting in multiple entries in this table.
+
+\par \textbf{\textit{NOTE}}: It is possible to use the Mentions table to create new variables for the Event table by aggregating mentions. For example, instead of a true/false \textit{IsRoot} field, a field could be created that calculates the fraction of articles for which a mention of the event occurs in the first 5 sentences. Doing this for some fields would allow evading the time limitation of the Events table, which only includes information from the first 15 minutes after the event is discovered. For instance, fields (e.g., \textit{NumMentions}, \textit{NumSources}, \textit{AvgTone}) could be recalculated in this way. Other new attributes (e.g., how long after the event occurred did it continue to be discussed) could be created.
+
+
+
+\subsection{Metadata}
+   \begin{itemize} 
+   	\item \textbf{GlobalEventId} - This is a unique ID. It is the field that links to the Events table.
+	\item \textbf{EventTimeDate} - This is equal to \emph{dateadded} in the related record in the Events table (and is therefore redundant). It can be used to determine the date and timestamp for when the record was added to GDELT without consulting the Events table.
+	\item \textbf{MentionTimeDate} - This is the date of when a mention was recorded by GDELT. (This is not necessarily the same as the the publication date for the article.)
+   \end{itemize}
+  
+\subsection{Source Information}
+   \begin{itemize} 
+     \item \textbf{4MentionSourceName} - This is the source in which a mention occurs, e.g., BBC, NY Times.
+     \item \textbf{MentionType} - This is an integer indicating the type of a source and how to interpret the \textit{MentionIdentifier} field. For example, 1 is from a URL for web page, 2 is from a citation only, 5 is from \href{https://about.jstor.org}{JSTOR}, 6 is from a non-textual source, etc.
+     \item \textbf{MentionIdentifier} - This can depend on the \textit{MentionType} but generally will be a URL If it is a journal article or paper, then it is a DOI. For other types, other unique identifiers are used.
+     \item \textbf{MentionDocLen} - This is the length of the document (in English characters). 
+     \item \textbf{MentionDocTone} - This is the tone of the document as determined by NLP.
+     \item \textbf{MentionDocTranslationInfo} - This is any translation information. It is given as a string with a series of flags indicating original language, translation method, etc. %What is meant by "method" Aren't all documents machine translated?
+   \end{itemize}
+
+  
+\subsection{In-Document Information}
+\begin{itemize} 
+   \item \textbf{SentenceID} - This is the sentence where the event is mentioned in the source text. It is 1-based, meaning that the first sentence is ID'd by 1, the second sentence is ID'd by 2, etc.
+   \item \textbf{ActorXCharOffset} - This is the location of an actor during the event as stated in the source text. 
+   \item \textbf{ActionCharOffset} - This is the location where the action of the event occurred as stated in the source text.
+   \item \textbf{InRawText} - This field is either a 1 or a 0 and is a boolean flag recording. 1 is an event discovered in the document's raw text. 0 is an event discovered when rewriting with the \href{https://parusanalytics.com/eventdata/software.dir/tabari.info.html}{TABARI system}. %Appropriate link?
+   \item \textbf{Confidence} - The confidence level is a score of certainty, given as a percentage (0-100), for the extraction of an event from an article. Low percentages indicate uncertainty whereas high percentages indicate certainty. Raw text extractions (\textit{InRawText} = 1) rate higher than texts rewritten by the TABARI system (\textit{InRawText} = 0).
+\end{itemize}

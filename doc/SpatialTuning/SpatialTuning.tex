@@ -1,0 +1,41 @@
+%!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{Spatial Tuning}
+\label{chapter:SpatialTuning}
+
+\textbf{Spatial Tuning} means customizing the way the search algorithm explores a particular dimension.
+For example, two fields that are present in the GDELT event data are \textit{latitude} and \textit{longitude}.
+When parsing the GDELT data, the gdelt\_ga\_search algorithm separates events by geographic location.
+This is done with a simple mathematical approach: latitude and longitude are used to form a `box' on the 
+Earth's surface. 
+Events are categorized as either \textit{inside} or \textit{outside} that box. 
+It is possible to expand and shrink the box for the purpose of growing or shrinking the number of events found \textit{inside} the search region.
+
+\par Events in a data set are not evenly distributed on the Earth's surface. 
+Of areas that have events, some contain a large or small number of events.
+Small areas with many events are \textit{high-density} areas, while areas with few events are \textit{low-density areas.}
+Of course, there are places without events. 
+For example, there are virtually no events that occur in the middle of the Pacific Ocean. 
+Many other areas do not have events, which can be seen in data sets for specific geographic regions. 
+
+\par Exploring areas that are not represented in the data set can waste time. If there are no events in a region, the region can be disregarded.
+
+\par If events are low-density in some areas and high-density in other areas, use a more nuanced strategy. 
+For a box with mostly low-density areas, use large increases (i.e, expand the box by hundreds of miles) to include a few more events by expanding the size of the search box.
+For a box with mostly high-density areas, use small increases (i.e., expand the box by a few miles). Small increases may need to be done multiple times. 
+If moving the boundaries even a few miles means including or excluding thousands of events, then a better strategy is to use small icreases.
+
+\par The above logic applies to other fields in the GDELT data. One of the other GDELT fields is /textit{Root Code}, which has values from 1 to 20. 
+Just as events are subsetted by latitude/longitude, codes can also be used to subset the data set.
+For an example with only one dimension (so instead of a 2-D box there is only a range), consider a search range with event codes 7 through 11.
+
+\par To expand the search for more event types, the code range could be expanded by moving one of the boundaries. For example, the range could expand to 6-11 or  to 7-12, or by moving both of the boundaries, to 6-12.
+
+\par The search can also be made smaller by restricting the code range. 
+Using the above example, to search for fewer event types, the range could be decreased to 8-11, 7-10, 3-8, etc.
+
+\par However, if it is known that there are no events labeled by a specific code, then that code should be skipped. 
+Using the above example of the range 7-11, if there are no code `6' events, then there is no reason to search for '6'. Instead, it is better skip 6 and use 5-11 instead of 7-11.
+
+\par Spatial tuning refers to the collection of strategies to optimize the way that the gdelt\_ga\_search algorithm expands and restricts its search ranges on specific domains, given what is known \textit{a priori} about the distribution of events on those domains in a data set.
+

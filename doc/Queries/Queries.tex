@@ -1,0 +1,66 @@
+%!TEX root =  GDELT_GA_Search_UsersManual.tex
+
+\chapter{Queries} \label{chap:Queries}
+\par A query consists of two parts:
+
+\begin{itemize}
+  \item A set of criteria that provide a boolean answer (yes/no) for the question, ``Does a specific GDELT event meet these criteria?"
+  \item A method for applying these criteria across a set of GDELT events and creating a time series from them
+\end{itemize}
+
+\par The query criteria are the more fundamental of the two components: intuitively, criteria can include any question based on the GDELT fields, such as whether the events GoldsteinScale score falls within a particular range, or whether Actor1 is one of a specific set of actors. Queries can contain multiple combinations of these criteria, allowing very specific queries (e.g., match only if GoldsteinScale score is between -4 and -6, and only if Actor1 is `USA') to be created.
+
+\par The second component is subtler: the query can expect to evaluate a collection of events, and it should return a time series based on those events. However, the query has the ability to consider an event whose internal data says that it occurred at one time to be counted as having occurred at a different time. Moreover, some events can be counted more heavily than others (via \textit{weighting}). These are discussed below.
+
+\section{Query Matching}
+\par Query matching is straightforward: a collection of criteria are applied, and an event is considered to match if it meets \textbf{all} of the criteria. This is a logical `AND' operation: if the event falls outside the boundaries of any criterion, it fails to match.
+
+%Pending a check of this:
+\par Note that any individual criterion can be `reversed', such that it becomes a negative of itself---that is, in the positive version a values matches if it falls inside the boundaries set by the query, whereas in the negative version it is a match only if it falls outside those boundaries. However, this is incidental to the overall process of matching all criteria in a given query: some criteria may be negative, but however each criterion defines a match, an event must still match all the criteria in a query to be consider an overall match.
+
+\section{Time Shifting}
+\par A function of the query is to create a time series. One implication of this is that date ranges are rarely used as criteria. A second implication is that the query translates some date-related field of the event into a specific point in time, and then assembles all of the points for all of the matching events into a time series. This can include a time shift: an event that has a date field of time T is shifted +/- some amount, so that it appears in the time series at a different point.
+
+\par This shift allows for events in the GDELT data to be associated with events in the target time-series data (e.g., the social media data) with a lag from one to the other. For example, an event that occurs in real-time with heavy social media activity (like a protest) may show up in news sources a day later. In this case, shifting the GDELT events backward a day allows the alignment between these series to be more clearly seen.
+
+\section{Nested Queries}
+\par Queries have an additional capacity: they can contain other queries. Queries can therefore be nested into multiple levels. This must form an acyclic graph because no query can contain itself. The nesting of queries can have the following attributes:
+
+\begin{itemize}
+  \item The nesting can be limited by limiting the process that creates it, such that only N `levels' of nesting are permitted (see below)
+  \item Nested queries can have different weightings, and thus can contribute differentially to the overall time series
+  \item Nested queries can have different time shift values
+\end{itemize}
+
+\par With respect to the last two, one can imagine a parent query that matches all events with a specific value for Actor1 and adds them to the time series with a weight of `1'; a nested query that matches all events with the same Actor1 but specific actor for Actor2 and adds them to the time series with a weight of `4'; and another nested query that captures events with the same actors but Goldstein Scale values below -5, and adds these with a weight of `8' and a time shift forward of 1 day. These different shifts and weightings become superimposed in the final time series that the query produces.
+% JTM to check how weighting and shifting are done- relative to the root or the immediate parent?
+
+\section{Mutation}
+\par Mutation occurs when a query has succeeded in yielding some successful results, and there is a desire to see if expanding or reducing the range of events it includes improves these results. Mutation can include the following elements:
+
+\begin{itemize}
+  \item Mutating one or more of the individual criteria by expanding or reducing the range considered
+  \item Adding or removing one or more nested queries
+  \item Modifying the time shift being applied to the query
+  \item Modifying the weighting being applied to the query
+\end{itemize}
+
+\section{Specifying query behaviors for specific runs}
+The GDELT Properties File (described more fully in section \ref{sec:GDELTPropertiesFile}) specifies:
+
+\begin{itemize}
+\item The minimum and maximum values for time shifts and visibility offsets
+\item Which elements of the query will be used to match a valid GDELT event
+\item For elements that are sets, which values are contained in the set
+\item How mutation will take place
+\end{itemize}
+
+The last of these is done via weighting; for example, in:
+
+\begin{lstlisting}
+# MUTATION WEIGHTS
+Actor1CountryCodesMutateWeight = 10
+Actor2CountryCodesMutateWeight = 30
+\end{lstlisting}
+
+The two Actor country codes can both be selected for mutation, but they will be weighted differently, with Actor 2 being three times more likely to be selected than Actor 1.

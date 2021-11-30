@@ -1,0 +1,9 @@
+/bin/
+/output/
+/data/
+*.aux
+*.toc
+*.out
+*.log
+*.gz
+doc/GDELT_GA_Search_UsersManual.pdf

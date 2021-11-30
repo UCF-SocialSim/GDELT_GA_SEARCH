@@ -1,0 +1,12 @@
+predMethods::LINEAR_REGRESSION
+scoreMethods::NRMSE_MEAN
+zeroTimes::2021-01-01
+trainDurations::28
+predDurations::21
+predDurationTrains::21
+popSizes::50
+survivorValues::10
+generations::15
+predictionPoints::7,0
+platforms::twitter,youtube
+frames::capitol,insurrection

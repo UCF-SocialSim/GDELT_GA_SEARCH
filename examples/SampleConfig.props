@@ -1,0 +1,35 @@
+# GIT DIRECTORY
+gitDir = /home/jmurphy/devMBM/gdelt_ga_search
+
+# GDELT DATA FILE LOCATION AND INFO
+dataLocation     = ./data/GDELT_RAW/GDELT_Events_Data_REDUCED.csv
+#mentionsLocation = ./data/GDELT/GDELT_Mentions_Data.csv
+beginHistory     = 2020-10-01
+dayZero          = 2021-04-01  
+
+# GDELT QUERY SPECIFICATIONS
+MaxShift              = 24
+MinShift              = 24
+MaxVizOffset          = 0
+MinVizOffset          = 0
+Actor1CountryCodes    = null,KEN,ZWE,UGA,AFR,TZA,RWA,MWI,USA,MOZ,NAM,BWA,BDI,GBR,MDG,CHN,SOM,FRA,ZAF,ETH,NGA
+Actor2CountryCodes    = null,KEN,ZWE,UGA,AFR,TZA,RWA,USA,MWI,MOZ,NAM,CHN,BWA,BDI,GBR,SOM,MDG,ETH,FRA,ZAF,SDN
+MatchGoldsteinScale   = FALSE
+MatchAverageTone      = FALSE
+MatchRootCode         = FALSE
+MatchLatLon           = FALSE
+
+# MUTATION WEIGHTS
+Actor1CountryCodesMutateWeight = 10
+Actor2CountryCodesMutateWeight = 10
+
+# TIME SHIFT MUTATION PROBABILITY
+MutatingTimeshiftProb           =  0
+
+# TIME SERIES DATA FILE LOCATION AND INFO
+timeSeriesDataLocation = ./examples/DummySocialMediaCounts.csv
+timeSeriesDataStart    = 2020-10-01T00:00:00
+
+# BAILOUT
+bailoutInterval  = 3600
+bailoutValue     = 100
